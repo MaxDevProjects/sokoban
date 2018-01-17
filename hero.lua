@@ -16,7 +16,7 @@ function hero.Load(pGame)
   
 end
 
-function hero.Update(pCamera, pGame, pMap,dt)
+function hero.Update(pBox, pCamera, pGame, pMap,dt)
   hero.imgCurrent = hero.imgCurrent + (hero.SpeedAnimPlay*dt)
   if math.floor(hero.imgCurrent) > #hero.images then
     hero.imgCurrent = 1
@@ -50,6 +50,8 @@ function hero.Update(pCamera, pGame, pMap,dt)
         print(hero.dir)
       end
       
+      
+      local oldBoxL, oldBoxC
       local l = hero.line
       local c = hero.column
       local id = pMap[((l-1)*25) + c]
