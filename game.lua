@@ -23,9 +23,15 @@ game.camera.line = 0
 game.level.TILE_WIDTH = 64
 game.level.TILE_HEIGHT = 64 
 
+box.nb = {}
+box.line = 0
+box.column = 0
+
+local tileType = nil
+
 function game.level.isSolid(pID)
   
-  local tileType = game.tileType[pID]
+  tileType = game.tileType[pID]
   
   if tileType == "wall" or
      tileType == "box" then
@@ -132,11 +138,61 @@ function game.Load()
   
   game.tileType[14] ="player"
   
-end
-
+  --for i=#game.level, 1, -1 do
+  --      for j = #game.level, 1, -1 do
+  --        local boxType = game.tileType[13]
+  --        if boxType then
+  --            box.nb = game.level[]
+  --            print(box.nb)
+  --      end
+  --    end
+  --  end
+  
+  local tiles = 25 --nombre de tuiles en longueur
+  --print(tiles)
+  
+  local nbLines =#game.level/(#game.level/game.level.TILE_WIDTH) --taille d'une tuile 64
+  --print(nbLines)
+  local line, col
+  local x,y
+  for line = nbLines, 1, -1 do
+    for col = 1, tiles do
+      local tile= game.level[((line-1)*tiles)+col]
+      local texQuad=game.tileTextures[tile]
+      if tile == 13 then
+        --print(tile) -- **imprime "13" 6 fois soit le nombre de la map level1**
+        table.insert(box.nb, tile)
+        print(#box.nb) --affichage du nombre de boite présente dans un niveau
+        box.line = line
+        box.column = col
+        print("l:"..box.line,"c :"..box.column)
+      end
+        if tile ==  4 
+        or tile ==  5
+        or tile ==  6 
+        or tile ==  25
+        or tile ==  32 
+        or tile ==  48
+        or tile ==  49
+        or tile ==  50 
+        or tile ==46 then
+          hero.line = line
+          hero.column = col
+          tile = 11
+          print("lHero:"..hero.line,"cHero :"..hero.column)
+        end
+        --local x= ((col-1)*game.level.TILE_WIDTH) 
+        --local y= ((line-1)*game.level.TILE_HEIGHT) 
+        
+        --love.graphics.draw(game.tileSheet, texQuad, x + game.camera.column, y + game.camera.line )
+        
+      end
+    end
+  end
+  
 function game.Update(dt)
   
-  hero.Update(game.camera, game, game.level,dt)
+  hero.Update(box,game.camera, game, game.level,dt)
   
   if love.keyboard.isDown("up") then
     game.camera.line = game.camera.line + 10
@@ -151,6 +207,7 @@ function game.Update(dt)
     game.camera.column = game.camera.column - 10
   end
   
+
   
 end
 
@@ -161,10 +218,10 @@ function drawGame()
   --love.graphics.push()
   --love.graphics.scale(0.6,0.6)
   
-  local tiles = 25
+  local tiles = 25 --nombre de tuiles en longueur
   --print(tiles)
   
-  local nbLines =#game.level/(#game.level/game.level.TILE_WIDTH)
+  local nbLines =#game.level/(#game.level/game.level.TILE_WIDTH) --taille d'une tuile 64
   --print(nbLines)
   local line, col
   local x,y
@@ -175,12 +232,14 @@ function drawGame()
       if texQuad~=nil then
         local x= ((col-1)*game.level.TILE_WIDTH) 
         local y= ((line-1)*game.level.TILE_HEIGHT) 
-        love.graphics.draw(game.tileSheet, texQuad, x + game.camera.column, y + game.camera.line )
+        love.graphics.draw(game.tileSheet, texQuad, x + box.column + game.camera.column, y + box.line + game.camera.line )
         
       end
     end
   end
   hero.Draw(game.level, game.camera)
+  
+  love.graphics.print("nbBox :"..#box.nb)
   love.graphics.setColor(0,0,0)
   
   --love.graphics.pop()
