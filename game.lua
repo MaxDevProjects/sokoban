@@ -2,10 +2,9 @@ local game = {}
 currentLvl = 0
 map = require("maps/level"..tostring(currentLvl))
 hero = require("hero")
-box = require("box")
 
 game.level = map.layers[1].data
---game.level = map.layers[2].data
+game.levelUp = map.layers[2].data
 --game.level = map.layers[3].data
 
 
@@ -23,9 +22,13 @@ game.camera.line = 0
 game.level.TILE_WIDTH = 64
 game.level.TILE_HEIGHT = 64 
 
+box = {}
 box.nb = {}
-box.line = 0
-box.column = 0
+box.nb.line = 0
+box.nb.column = 0
+--box.nb.y = 0
+--box.nb.x = 0
+box.nb.move = false
 
 local tileType = nil
 
@@ -33,12 +36,30 @@ function game.level.isSolid(pID)
   
   tileType = game.tileType[pID]
   
-  if tileType == "wall" or
-     tileType == "box" then
+  if tileType == "wall" then
     return true
   end
   return false
 end
+
+function game.levelUp.isSolid(pID)
+  tileType = game.tileType[pID]
+  if tileType == "box" then
+    --box.nb.move = true
+    return true
+  end
+  return false
+end
+
+function moveBox(pC, pL, stat)
+  
+  pC = box.nb.column
+  pL = box.nb.line
+  stat = box.nb.move
+  
+  
+    
+  end
 
 function game.Load()
   
@@ -128,9 +149,9 @@ function game.Load()
   game.tileType[6] = "door"
   game.tileType[25] ="door"
   game.tileType[32] ="door"
-  game.tileType[48] ="door"
-  game.tileType[49] ="door"
-  game.tileType[50] ="door"
+  game.tileType[44] ="door"
+  game.tileType[45] ="door"
+  --game.tileType[50] ="door"
   game.tileType[46] ="door"
 
   game.tileType[11] ="floor"
@@ -138,15 +159,6 @@ function game.Load()
   
   game.tileType[14] ="player"
   
-  --for i=#game.level, 1, -1 do
-  --      for j = #game.level, 1, -1 do
-  --        local boxType = game.tileType[13]
-  --        if boxType then
-  --            box.nb = game.level[]
-  --            print(box.nb)
-  --      end
-  --    end
-  --  end
   
   local tiles = 25 --nombre de tuiles en longueur
   --print(tiles)
@@ -157,42 +169,37 @@ function game.Load()
   local x,y
   for line = nbLines, 1, -1 do
     for col = 1, tiles do
-      local tile= game.level[((line-1)*tiles)+col]
-      local texQuad=game.tileTextures[tile]
-      if tile == 13 then
+      local tile1= game.level[((line-1)*tiles)+col]
+      local tile2= game.levelUp[((line-1)*tiles)+col]
+      local texQuad1=game.tileTextures[tile1]
+      local texQuad2=game.tileTextures[tile2]
+      if tile2 == 13 then
         --print(tile) -- **imprime "13" 6 fois soit le nombre de la map level1**
-        table.insert(box.nb, tile)
+        table.insert(box.nb, tile2)
         print(#box.nb) --affichage du nombre de boite présente dans un niveau
-        box.line = line
-        box.column = col
-        print("l:"..box.line,"c :"..box.column)
+        box.nb.line = line
+        box.nb.column = col
+        print("l:"..box.nb.line,"c :"..box.nb.column)
       end
-        if tile ==  4 
-        or tile ==  5
-        or tile ==  6 
-        or tile ==  25
-        or tile ==  32 
-        or tile ==  48
-        or tile ==  49
-        or tile ==  50 
-        or tile ==46 then
+        if tile1 ==  4 
+        or tile1 ==  5
+        or tile1 ==  6 
+        or tile1 ==  25
+        or tile1 ==  32 
+        or tile1 ==  44
+        or tile1 ==  45
+        or tile1 ==  46 then
           hero.line = line
           hero.column = col
-          tile = 11
           print("lHero:"..hero.line,"cHero :"..hero.column)
         end
-        --local x= ((col-1)*game.level.TILE_WIDTH) 
-        --local y= ((line-1)*game.level.TILE_HEIGHT) 
-        
-        --love.graphics.draw(game.tileSheet, texQuad, x + game.camera.column, y + game.camera.line )
-        
       end
     end
   end
   
 function game.Update(dt)
   
-  hero.Update(box,game.camera, game, game.level,dt)
+  hero.Update(game.camera, game, game.level, game.levelUp, box.nb,dt)
   
   if love.keyboard.isDown("up") then
     game.camera.line = game.camera.line + 10
@@ -227,24 +234,45 @@ function drawGame()
   local x,y
   for line = nbLines, 1, -1 do
     for col = 1, tiles do
-      local tile= game.level[((line-1)*tiles)+col]
-      local texQuad=game.tileTextures[tile]
-      if texQuad~=nil then
-        local x= ((col-1)*game.level.TILE_WIDTH) 
-        local y= ((line-1)*game.level.TILE_HEIGHT) 
-        love.graphics.draw(game.tileSheet, texQuad, x + box.column + game.camera.column, y + box.line + game.camera.line )
-        
+      local tile1= game.level[((line-1)*tiles)+col]
+      local texQuad1=game.tileTextures[tile1]
+      if texQuad1~=nil then
+        local x= ((col-1)*game.level.TILE_WIDTH)
+        local y= ((line-1)*game.level.TILE_HEIGHT)
+        love.graphics.draw(game.tileSheet, texQuad1, x + game.camera.column, y + game.camera.line )       
       end
     end
   end
-  hero.Draw(game.level, game.camera)
   
-  love.graphics.print("nbBox :"..#box.nb)
+   hero.Draw(game.level, game.levelUp, game.camera, box.nb)
+  
+  --Map de surCouche
+  for line = nbLines, 1, -1 do
+    for col = 1, tiles do
+      local tile2= game.levelUp[((line-1)*tiles)+col]
+      local texQuad2=game.tileTextures[tile2]
+      if texQuad2~=nil then
+        box.nb.column = col
+        box.nb.line = line
+        local x= ((col-1)*game.level.TILE_WIDTH) 
+        local y = ((line-1)*game.level.TILE_HEIGHT)
+        --love.graphics.rectangle("fill",box.nb.column, box.nb.line, 64, 64)
+        love.graphics.draw(game.tileSheet, texQuad2, x + game.camera.column , y + game.camera.line)
+        --print("boxC :"..box.nb.column.." boxL :"..box.nb.line)
+      end
+    end
+  end
+ 
+  love.graphics.print("nbBox :"..#box.nb.."\n"..
+                      "heroC :"..hero.column.." heroL :"..hero.line.."\n"..
+                      "boxC :"..box.nb.column.."boxL :"..box.nb.line.."\n"..
+                      "boxMove :"..tostring(box.nb.move))
+  
   love.graphics.setColor(0,0,0)
   
   --love.graphics.pop()
   
-  --darkness
+  -- **darkness**
   --love.graphics.setColor(0,0,0,200)
   --love.graphics.rectangle("fill", 0,0,wScreen, hScreen)
   --love.graphics.setColor(0,0,0)

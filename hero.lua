@@ -16,7 +16,7 @@ function hero.Load(pGame)
   
 end
 
-function hero.Update(pBox, pCamera, pGame, pMap,dt)
+function hero.Update(pCamera, pGame, pMap, pMapUp, pBox,dt)
   hero.imgCurrent = hero.imgCurrent + (hero.SpeedAnimPlay*dt)
   if math.floor(hero.imgCurrent) > #hero.images then
     hero.imgCurrent = 1
@@ -51,37 +51,46 @@ function hero.Update(pBox, pCamera, pGame, pMap,dt)
       end
       
       
-      local oldBoxL, oldBoxC
+      local oldBoxL = pBox.line
+      local oldBoxC = pBox.column
       local l = hero.line
       local c = hero.column
       local id = pMap[((l-1)*25) + c]
-      if pMap.isSolid(id) then
+      local id2 = pMapUp[((l-1)*25) + c]
+      if pMap.isSolid(id) then 
         hero.line = oldL
-        hero.column = oldC   
-        
-        --local box = {}
-        --box.l = 0
-        --box.c = 0
-        
-        -- **revoir pour mouvements de box** --------
-        --box.l = hero.line 
-        --box.c = hero.column 
-        --box.type = pGame.tileType[13]
-        --if hero.dir == "right" and box.type then
-        --  print("boxX : "..box.c)
-        --end
+        hero.column = oldC
       end
+        if pMapUp.isSolid(id2) then
+          hero.line = oldL
+          hero.column = oldC
+          --pBox.line = oldBoxL
+          --pBox.column = oldBoxC
+          -- **apres collision la boite bouge** --------
+          if hero.dir == "left" and pMapUp.isSolid(13) then
+            pBox.column = pBox.column - 64
+          end
+          if hero.dir == "right" and pMapUp.isSolid(13) then
+            pBox.column = pBox.column + 64
+          end
+          if hero.dir == "up" and pMapUp.isSolid(13) then
+            pBox.line = pBox.line - 64
+          end
+          if hero.dir == "down" and pMapUp.isSolid(13) then
+            pBox.line = pBox.line + 64
+          end
+        end
       hero.KeyPressed = true
-    end 
+    end  
   else
     hero.KeyPressed = false
-  end      
+  end     
 end
 
-function hero.Draw(pMap, pCam)
+function hero.Draw(pMap, pMapUp, pCam, pBox)
   hero.x = (hero.column - 1) * pMap.TILE_WIDTH 
   hero.y = (hero.line - 1) * pMap.TILE_HEIGHT 
-  love.graphics.draw(hero.images[math.floor(hero.imgCurrent)], hero.x + pCam.column, hero.y + pCam.line, 0, 2, 2)
+  love.graphics.draw(hero.images[math.floor(hero.imgCurrent)], hero.x + pCam.column, hero.y + pCam.line , 0, 2, 2)
   
  -- local l = hero.line
  -- local c = hero.column
